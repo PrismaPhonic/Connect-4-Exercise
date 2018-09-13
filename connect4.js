@@ -10,7 +10,7 @@ const WIDTH = 7;
 const HEIGHT = 6;
 
 let currPlayer = 1;  // active player: 1 or 2
-let board = [];      // array of rows, each row is array of cells  (board[y][x])
+let board;      // define board outside function scope for other functions to access later;
 
 
 /** makeBoard: create in-JS board structure: 
@@ -23,13 +23,14 @@ let board = [];      // array of rows, each row is array of cells  (board[y][x])
 function makeBoard(tall, wide) {
   // TODO: set "board" to empty HEIGHT x WIDTH matrix array
   let row = Array(wide).fill(0);
-  return Array(tall).fill(row);
+  board = Array(tall).fill(row);
 }
 
 /** makeHtmlBoard: make HTML table and row of column tops. */
 
 function makeHtmlBoard() {
   // TODO: get "board" variable from the item in HTML w/ID of "board"
+  let boardHTML = document.getElementById('board');
 
   // TODO: add comment for this code
   let top = document.createElement("tr");
@@ -41,7 +42,7 @@ function makeHtmlBoard() {
     headCell.setAttribute("id", x);
     top.append(headCell);
   }
-  board.append(top);
+  boardHTML.append(top);
 
   // TODO: add comment for this code
   for (let y = 0; y < HEIGHT; y++) {
@@ -51,7 +52,7 @@ function makeHtmlBoard() {
       cell.setAttribute("id", `${y}-${x}`)
       row.append(cell);
     }
-    board.append(row)
+    boardHTML.append(row)
   }
 }
 
