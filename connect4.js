@@ -10,7 +10,7 @@ const WIDTH = 7;
 const HEIGHT = 6;
 
 let currPlayer = 1;  // active player: 1 or 2
-let board;      // define board outside function scope for other functions to access later;
+let board = [];      // define board outside function scope for other functions to access later;
 
 
 /** makeBoard: create in-JS board structure: 
@@ -22,8 +22,12 @@ let board;      // define board outside function scope for other functions to ac
 
 function makeBoard(tall, wide) {
   // TODO: set "board" to empty HEIGHT x WIDTH matrix array
-  let row = Array(wide).fill(0);
-  board = Array(tall).fill(row);
+  for (let i = 0; i < tall; i++) {
+    let row = Array(wide).fill(0);
+    board.push(row);
+  }
+
+
 }
 
 /** makeHtmlBoard: make HTML table and row of column tops. */
@@ -39,7 +43,10 @@ function makeHtmlBoard() {
 
   for (let x = 0; x < WIDTH; x++) {
     let headCell = document.createElement("td");
+    let topText = document.createElement("h5")
+    headCell.innerText = 'Click to Drop';
     headCell.setAttribute("id", x);
+    headCell.appendChild(topText);
     top.append(headCell);
   }
   boardHTML.append(top);
@@ -60,6 +67,12 @@ function makeHtmlBoard() {
 
 function findSpotForCol(x) {
   // TODO: write the real version of this, rather than always returning 0
+  for (let y = board.length - 1; y >= 0; y--) {
+    let row = board[y];
+    if (row[x] === 0) return y;
+  }
+  return null;
+  //we are returning a y for x that is empty
 }
 
 /** placeInTable: update DOM to place piece into HTML board */
@@ -81,14 +94,14 @@ function updateBoard(y, x) {
 
 // check if gameboard is full
 
-function boardIsFull(board) {
+function boardIsFull() {
   let boardStr = board.map(e => e.join('')).join('');
   return !(/0/g.test(boardStr));
 }
 
 function endGame(msg) {
   // TODO: pop up alert message
-  alert(msg);
+  setTimeout(alert(msg), 1000);
 }
 
 /** handleClick: handle click of column top to play piece */
@@ -156,5 +169,5 @@ function checkForWin() {
   }
 }
 
-makeBoard()
-makeHtmlBoard()
+makeBoard(HEIGHT, WIDTH);
+makeHtmlBoard();

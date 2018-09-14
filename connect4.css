@@ -6,6 +6,15 @@ td {
   border: solid 1px black;
 }
 
+#column-top td {
+  border-style: none;
+  color: white;
+}
+
+#column-top td:hover {
+  color: black;
+}
+
 /* pieces are div within game table cells: draw as colored circles */
 
 .piece {
