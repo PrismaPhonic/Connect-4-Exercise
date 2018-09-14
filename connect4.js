@@ -9,20 +9,17 @@ const WIDTH = 7;
 const HEIGHT = 6;
 
 let currPlayer = 1; // active player: 1 or 2
-let board = []; // define board outside function scope for other functions to access later;
 
-/** makeBoard: create in-JS board structure:
- *    board = array of rows, each row is array of cells  (board[y][x])
- *
- * NOTE: Do we ever store gameboard anywhere?
- */
+// represent board in binary, and player moves in their own binary
+let board = 0, p1Board = 0, p2Board = 0;
 
-function makeBoard(tall, wide) {
-  // TODO: set "board" to empty HEIGHT x WIDTH matrix array
-  for (let i = 0; i < tall; i++) {
-    let row = Array(wide).fill(0);
-    board.push(row);
+// This function generates a string representing binary, of exact WIDTH
+function binString(binary) {
+  let binStr = binary.toString(2);
+  if (binStr.length < WIDTH) {
+    binStr = Array(WIDTH - binStr.length).fill(0).join('') + binStr;
   }
+  return binStr;
 }
 
 /** makeHtmlBoard: make HTML table and row of column tops. */
@@ -53,10 +50,10 @@ function makeHtmlBoard() {
     hoverPiece.classList.add('piece');
     hoverPiece.classList.add('p1');
     hoverPiece.classList.add('hidden');
-    headCell.addEventListener('mouseover', function() {
+    headCell.addEventListener('mouseover', function () {
       hoverPiece.classList.toggle('hidden');
     });
-    headCell.addEventListener('mouseout', function() {
+    headCell.addEventListener('mouseout', function () {
       hoverPiece.classList.toggle('hidden');
     });
     headCell.appendChild(hoverPiece);
@@ -65,7 +62,7 @@ function makeHtmlBoard() {
   }
   boardHTML.append(top);
 
-  // TODO: add comment for this code
+  // Add cells for table!
   for (let y = 0; y < HEIGHT; y++) {
     let row = document.createElement('tr');
     for (let x = 0; x < WIDTH; x++) {
@@ -80,13 +77,16 @@ function makeHtmlBoard() {
 /** findSpotForCol: given column x, return top empty y (null if filled) */
 
 function findSpotForCol(x) {
-  // TODO: write the real version of this, rather than always returning 0
-  for (let y = board.length - 1; y >= 0; y--) {
-    let row = board[y];
-    if (row[x] === 0) return y;
+  //grab column at x and store as an integer, to be manipulated with bitwise later
+  let colBin = +(binString(board).filter((e, i) i % x === 0));
+
+  //find first 0 from the right, once found return that row location
+  for (let y = 0; y < colBin.length; y++) {
+    let mask = 1 << y;
+    if ((colBin ^ mask) !== colBin) return (board.length - 1 - y);
   }
+
   return null;
-  //we are returning a y for x that is empty
 }
 
 /** placeInTable: update DOM to place piece into HTML board */
@@ -101,7 +101,13 @@ function placeInTable(y, x) {
 }
 
 function updateBoard(y, x) {
-  board[y][x] = currPlayer;
+  let mask = 1 << ((WIDTH * y) - WIDTH + x);
+  board = board | mask;
+  if (currPlayer === 1) {
+    p1Board = p1Board | mask;
+  } else {
+    p2Board = p2Board | mask;
+  }
 }
 
 /** endGame: announce game end */
@@ -109,8 +115,8 @@ function updateBoard(y, x) {
 // check if gameboard is full
 
 function boardIsFull() {
-  let boardStr = board.map(e => e.join('')).join('');
-  return !/0/g.test(boardStr);
+  let boardStr = binString(board)
+  return !(/0/g.test(boardStr));
 }
 
 function endGame(msg) {
@@ -147,7 +153,7 @@ function handleClick(evt) {
   }
 
   // check for win
-  if (checkForWin()) {
+  if (checkForWin(currPlayer)) {
     setTimeout(() => endGame(`Player ${currPlayer} won!`), 10);
   }
 
@@ -179,37 +185,11 @@ function showPlayerName() {
 
 /** checkForWin: check board cell-by-cell for "does a win start here?" */
 
-function checkForWin() {
-  function _win(cells) {
-    // Check four cells to see if they're all color of current player
-    //  - cells: list of four (y, x) cells
-    //  - returns true if all are legal coordinates & all match currPlayer
-
-    return cells.every(
-      ([y, x]) =>
-        y >= 0 &&
-        y < HEIGHT &&
-        x >= 0 &&
-        x < WIDTH &&
-        board[y][x] === currPlayer
-    );
-  }
-
-  // TODO: read and understand this code. Add comments to help you.
-
-  for (let y = 0; y < HEIGHT; y++) {
-    for (let x = 0; x < WIDTH; x++) {
-      let horiz = [[y, x], [y, x + 1], [y, x + 2], [y, x + 3]];
-      let vert = [[y, x], [y + 1, x], [y + 2, x], [y + 3, x]];
-      let diagDR = [[y, x], [y + 1, x + 1], [y + 2, x + 2], [y + 3, x + 3]];
-      let diagDL = [[y, x], [y + 1, x - 1], [y + 2, x - 2], [y + 3, x - 3]];
-
-      if (_win(horiz) || _win(vert) || _win(diagDR) || _win(diagDL)) {
-        return true;
-      }
-    }
-  }
+function checkForWin(currPlayer) {
+  let checkBoard = (currPlayer === 1) ? p1Board : p2Board;
+  // 6 spaces represents top right to bottom left diagonal connect 4, 8 represents top left to bottom right
+  // 7 represents vertical, and {4} in a row is horizontal
+  return /(1{4}|1\d{7}1\d{7}1\d{7}1|1\d{6}1\d{6}1\d{6}1|1\d{8}1\d{8}1\d{8}1)/.test(checkBoard);
 }
 
-makeBoard(HEIGHT, WIDTH);
 makeHtmlBoard();
